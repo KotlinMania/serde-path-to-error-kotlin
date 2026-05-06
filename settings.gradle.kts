@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "serde-path-to-error-kotlin"
+
