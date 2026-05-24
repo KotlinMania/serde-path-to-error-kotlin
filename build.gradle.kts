@@ -57,10 +57,18 @@ kotlin {
         binaries.framework { baseName = "SerdePathToError"; xcf.add(this) }
     }
     iosSimulatorArm64 {
-        binaries.framework { baseName = "SerdePathToError"; xcf.add(this) }
+        binaries.framework {
+            baseName = "SerdePathToError"
+            isStatic = true
+            xcf.add(this)
+        }
     }
     iosX64 {
-        binaries.framework { baseName = "SerdePathToError"; xcf.add(this) }
+        binaries.framework {
+            baseName = "SerdePathToError"
+            isStatic = true
+            xcf.add(this)
+        }
     }
 
     tvosArm64 {
