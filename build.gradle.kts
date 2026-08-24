@@ -971,15 +971,12 @@ tasks.register("swiftExportSmokeTest") {
             }
         }
 
-        execOperations
-            .exec {
-                workingDir = layout.projectDirectory.dir("swift-test-harness").asFile
-                commandLine("swift", "package", "reset")
-            }.assertNormalExitValue()
+        layout.projectDirectory.dir("swift-test-harness/.build").asFile.deleteRecursively()
 
         execOperations
             .exec {
                 workingDir = layout.projectDirectory.dir("swift-test-harness").asFile
+                environment("MACOSX_DEPLOYMENT_TARGET", "14.0")
                 commandLine("swift", "test")
             }.assertNormalExitValue()
     }
