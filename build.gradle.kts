@@ -943,19 +943,12 @@ tasks.register("swiftExportSmokeTest") {
 
     doLast {
         val execOperations = serviceOf<ExecOperations>()
-        val swiftBuildDirFile =
+        val swiftBuildDir =
             layout.buildDirectory
-                .dir("swift-test-scratch")
+                .dir("swift-test")
                 .get()
                 .asFile
-        swiftBuildDirFile.deleteRecursively()
-        swiftBuildDirFile.mkdirs()
-        val swiftBuildDir = swiftBuildDirFile.absolutePath
-        layout.buildDirectory
-            .dir("bin/macosArm64/SwiftExportBinaryDebugStatic")
-            .get()
-            .asFile
-            .mkdirs()
+                .absolutePath
         execOperations
             .exec {
                 workingDir = projectDir
@@ -980,33 +973,16 @@ tasks.register("swiftExportSmokeTest") {
                 )
             }.assertNormalExitValue()
 
-        val generatedPackageSwift =
-            layout.buildDirectory
-                .file("SPMPackage/macosArm64/Debug/Package.swift")
-                .get()
-                .asFile
-        if (generatedPackageSwift.exists()) {
-            val text = generatedPackageSwift.readText()
-            if (!text.contains("platforms:")) {
-                generatedPackageSwift.writeText(
-                    text.replaceFirst(
-                        Regex("(name:\\s*\"[^\"]*\",)"),
-                        "\$1\n    platforms: [.macOS(.v14)],",
-                    ),
-                )
-            }
-        }
-
         execOperations
             .exec {
                 workingDir = layout.projectDirectory.dir("swift-test-harness").asFile
-                commandLine("swift", "package", "--scratch-path", swiftBuildDir, "reset")
+                commandLine("swift", "package", "reset")
             }.assertNormalExitValue()
 
         execOperations
             .exec {
                 workingDir = layout.projectDirectory.dir("swift-test-harness").asFile
-                commandLine("swift", "test", "--scratch-path", swiftBuildDir)
+                commandLine("swift", "test")
             }.assertNormalExitValue()
     }
 }
