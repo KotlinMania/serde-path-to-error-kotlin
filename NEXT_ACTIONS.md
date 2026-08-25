@@ -6,10 +6,10 @@ Based on AST analysis, here are the concrete next steps.
 
 - **Files Present:** 5/5 (100.0%)
 - **Function parity:** 16/133 matched (target 98) — 12.0%
-- **Class/type parity:** 12/32 matched (target 31) — 37.5%
-- **Combined symbol parity:** 28/165 matched (target 129) — 17.0%
-- **Average inline-code cosine:** 0.25 (function body across 4 matched files)
-- **Average documentation cosine:** 0.39 (doc text across 4 matched files)
+- **Class/type parity:** 11/32 matched (target 21) — 34.4%
+- **Combined symbol parity:** 27/165 matched (target 119) — 16.4%
+- **Average inline-code cosine:** 0.20 (function body across 5 matched files)
+- **Average documentation cosine:** 0.40 (doc text across 5 matched files)
 - **Cheat-zeroed Files:** 3
 - **Critical Issues:** 4 files with <0.60 function similarity
 
@@ -73,19 +73,14 @@ Every matched file is listed below with function and type symbol parity.
 
 ### 5. lib
 
-- **Target:** `serdepathtoerror.Chain [STUB] [PROVENANCE-FALLBACK]`
+- **Target:** `serdepathtoerror.Lib [ZERO]`
 - **Similarity:** 0.00
 - **Dependents:** 0
-- **Priority Score:** 21110.0
+- **Priority Score:** 31110.0
 - **Functions:** 6/8 matched (target 11)
 - **Missing functions:** `fmt`, `source`
-- **Types:** 3/3 matched (target 14)
-- **Missing types:** _none_
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `src/lib.rs` vs expected `lib.rs`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `tests:src/lib.rs` vs expected `lib.rs`
-- **Proposed provenance header:** `// port-lint: source lib.rs` (current: `// port-lint: source src/lib.rs`)
-- **Proposed provenance header:** `// port-lint: tests lib.rs` (current: `// port-lint: tests src/lib.rs`)
-- **Lint issues:** 2
+- **Types:** 2/3 matched (target 4)
+- **Missing types:** `Chain`
 
 ## Success Criteria
 
