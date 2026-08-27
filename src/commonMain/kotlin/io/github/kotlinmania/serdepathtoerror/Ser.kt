@@ -15,7 +15,7 @@ import kotlinx.serialization.modules.SerializersModule
 /**
  * Entry point for serializing with path tracking.
  */
-public fun <T> serialize(serializer: SerializationStrategy<T>, encoder: Encoder, value: T): Unit {
+public fun <T> serialize(serializer: SerializationStrategy<T>, encoder: Encoder, value: T) {
     val track = Track.new()
     val trackedEncoder = Serializer.new(encoder, track)
     try {
@@ -35,7 +35,6 @@ public class Serializer private constructor(
     private val chain: Chain,
     private val track: Track,
 ) : Encoder {
-
     public constructor(ser: Encoder, track: Track) : this(ser, Chain.Root, track)
 
     override val serializersModule: SerializersModule
@@ -162,6 +161,7 @@ public class Serializer private constructor(
 
     public companion object {
         public fun new(ser: Encoder, track: Track): Serializer = Serializer(ser, track)
+
         internal fun withChain(ser: Encoder, chain: Chain, track: Track): Serializer =
             Serializer(ser, chain, track)
     }
@@ -186,8 +186,8 @@ public class TrackedCompositeEncoder(
         }
     }
 
-    private fun childChain(index: Int): Chain {
-        return when (descriptor.kind) {
+    private fun childChain(index: Int): Chain =
+        when (descriptor.kind) {
             StructureKind.CLASS, StructureKind.OBJECT -> {
                 if (index in 0 until descriptor.elementsCount) {
                     Chain.Struct(chain, descriptor.getElementName(index))
@@ -211,7 +211,6 @@ public class TrackedCompositeEncoder(
             is PolymorphicKind -> chain
             else -> Chain.Seq(chain, index)
         }
-    }
 
     override fun encodeBooleanElement(descriptor: SerialDescriptor, index: Int, value: Boolean) =
         withElement(index) { delegate.encodeBooleanElement(descriptor, index, value) }

@@ -5,19 +5,18 @@
 package io.github.kotlinmania.serdepathtoerror
 
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
-import io.github.kotlinmania.serdepathtoerror.Error as PathError
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import io.github.kotlinmania.serdepathtoerror.Error as PathError
 
 internal class TrackingDeserializer<T>(
     private val delegate: KSerializer<T>,
@@ -26,7 +25,8 @@ internal class TrackingDeserializer<T>(
         get() = delegate.descriptor
 
     override fun deserialize(decoder: Decoder): T =
-        io.github.kotlinmania.serdepathtoerror.deserialize(delegate, decoder)
+        io.github.kotlinmania.serdepathtoerror
+            .deserialize(delegate, decoder)
 
     override fun serialize(encoder: Encoder, value: T) =
         delegate.serialize(encoder, value)
@@ -100,7 +100,10 @@ internal data class PackageFixed(
 )
 
 @Serializable(with = FixedPairSerializer::class)
-internal data class FixedPair(val first: String, val second: String)
+internal data class FixedPair(
+    val first: String,
+    val second: String,
+)
 
 internal object FixedPairSerializer : KSerializer<FixedPair> {
     override val descriptor: SerialDescriptor =
@@ -125,20 +128,21 @@ internal data class Container(
 )
 
 class DeserializeTest {
-
-    private val json = Json {
-        ignoreUnknownKeys = false
-        isLenient = false
-    }
+    private val json =
+        Json {
+            ignoreUnknownKeys = false
+            isLenient = false
+        }
 
     private fun <T> testDeserializeError(
         serializer: KSerializer<T>,
         jsonString: String,
         expected: String,
     ) {
-        val err = assertFailsWith<PathError> {
-            json.decodeFromString(TrackingDeserializer(serializer), jsonString)
-        }
+        val err =
+            assertFailsWith<PathError> {
+                json.decodeFromString(TrackingDeserializer(serializer), jsonString)
+            }
         val path = err.path.toString()
         assertEquals(expected, path)
     }
@@ -229,10 +233,11 @@ class DeserializeTest {
         val j = """{
             "n": "130033514578017493995102500318550798591"
         }"""
-        val container = json.decodeFromString(
-            TrackingDeserializer(Container.serializer()),
-            j,
-        )
+        val container =
+            json.decodeFromString(
+                TrackingDeserializer(Container.serializer()),
+                j,
+            )
         assertEquals("130033514578017493995102500318550798591", container.n)
     }
 

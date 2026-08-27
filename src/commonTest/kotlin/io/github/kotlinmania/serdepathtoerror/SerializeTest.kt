@@ -14,22 +14,18 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
-import io.github.kotlinmania.serdepathtoerror.Error as PathError
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import io.github.kotlinmania.serdepathtoerror.Error as PathError
 
 internal object FailingSerializer : KSerializer<String> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Failing", PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): String {
-        throw UnsupportedOperationException("deserialize not supported")
-    }
+    override fun deserialize(decoder: Decoder): String = throw UnsupportedOperationException("deserialize not supported")
 
-    override fun serialize(encoder: Encoder, value: String) {
-        throw IllegalStateException("Already borrowed")
-    }
+    override fun serialize(encoder: Encoder, value: String): Unit = throw IllegalStateException("Already borrowed")
 }
 
 @Serializable
@@ -58,25 +54,27 @@ internal class TrackingSerializer<T>(
     override fun deserialize(decoder: Decoder): T = delegate.deserialize(decoder)
 
     override fun serialize(encoder: Encoder, value: T) {
-        io.github.kotlinmania.serdepathtoerror.serialize(delegate, encoder, value)
+        io.github.kotlinmania.serdepathtoerror
+            .serialize(delegate, encoder, value)
     }
 }
 
 class SerializeTest {
-
     private fun <T> testSerializeError(serializer: KSerializer<T>, value: T, expected: String) {
-        val err = assertFailsWith<PathError> {
-            Json.encodeToString(TrackingSerializer(serializer), value)
-        }
+        val err =
+            assertFailsWith<PathError> {
+                Json.encodeToString(TrackingSerializer(serializer), value)
+            }
         val path = err.path.toString()
         assertEquals(expected, path)
     }
 
     @Test
     fun testRefcellAlreadyBorrowed() {
-        val outer = Outer(
-            k = Inner(refcell = "content"),
-        )
+        val outer =
+            Outer(
+                k = Inner(refcell = "content"),
+            )
         testSerializeError(Outer.serializer(), outer, "k.refcell")
     }
 
@@ -86,13 +84,14 @@ class SerializeTest {
         val midMap = mapOf("k" to innerMap)
         val map = mapOf(100 to midMap)
 
-        val mapSerializer = MapSerializer(
-            Int.serializer(),
+        val mapSerializer =
             MapSerializer(
-                String.serializer(),
-                MapSerializer(String.serializer(), FailingNode.serializer()),
-            ),
-        )
+                Int.serializer(),
+                MapSerializer(
+                    String.serializer(),
+                    MapSerializer(String.serializer(), FailingNode.serializer()),
+                ),
+            )
 
         testSerializeError(mapSerializer, map, "100.k.dummy.value")
     }
