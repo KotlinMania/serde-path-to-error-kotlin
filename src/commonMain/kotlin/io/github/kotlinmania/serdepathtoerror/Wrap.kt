@@ -1,4 +1,4 @@
-// port-lint: source serde_path_to_error/src/wrap.rs
+// port-lint: source wrap.rs
 
 package io.github.kotlinmania.serdepathtoerror
 

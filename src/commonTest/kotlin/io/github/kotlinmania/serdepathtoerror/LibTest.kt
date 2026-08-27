@@ -1,4 +1,4 @@
-// port-lint: tests serde_path_to_error/src/lib.rs
+// port-lint: tests lib.rs
 package io.github.kotlinmania.serdepathtoerror
 
 import kotlin.test.Test

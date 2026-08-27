@@ -1,4 +1,4 @@
-// port-lint: source serde_path_to_error/src/de.rs
+// port-lint: source de.rs
 
 @file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 
