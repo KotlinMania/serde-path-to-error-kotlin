@@ -24,11 +24,12 @@ public fun <T> deserialize(deserializer: DeserializationStrategy<T>, decoder: De
         throw e
     } catch (e: Throwable) {
         val fromErr = Track.extractPathFromException(e)
-        val finalPath = if (fromErr != null && fromErr.segments.isNotEmpty()) {
-            fromErr
-        } else {
-            track.path()
-        }
+        val finalPath =
+            if (fromErr != null && fromErr.segments.isNotEmpty()) {
+                fromErr
+            } else {
+                track.path()
+            }
         throw Error(finalPath, e)
     }
 }
@@ -41,7 +42,6 @@ public class Deserializer private constructor(
     private val chain: Chain,
     private val track: Track,
 ) : Decoder {
-
     public constructor(de: Decoder, track: Track) : this(de, Chain.Root, track)
 
     override val serializersModule: SerializersModule
@@ -155,6 +155,7 @@ public class Deserializer private constructor(
 
     public companion object {
         public fun new(de: Decoder, track: Track): Deserializer = Deserializer(de, track)
+
         internal fun withChain(de: Decoder, chain: Chain, track: Track): Deserializer =
             Deserializer(de, chain, track)
     }
@@ -192,10 +193,11 @@ public class TrackedCompositeDecoder(
 
     private fun extractChainFromException(e: Throwable): Chain? {
         val msg = e.message ?: return null
-        val match = Regex(
-            """(?:unknown key|unknown field|Encountered an unknown key)\s+['"`]([^'"`]+)['"`]""",
-            RegexOption.IGNORE_CASE,
-        ).find(msg)
+        val match =
+            Regex(
+                """(?:unknown key|unknown field|Encountered an unknown key)\s+['"`]([^'"`]+)['"`]""",
+                RegexOption.IGNORE_CASE,
+            ).find(msg)
         if (match != null) {
             val field = match.groupValues[1]
             return Chain.Struct(chain, field)
@@ -203,8 +205,8 @@ public class TrackedCompositeDecoder(
         return null
     }
 
-    private fun childChain(index: Int): Chain {
-        return when (descriptor.kind) {
+    private fun childChain(index: Int): Chain =
+        when (descriptor.kind) {
             StructureKind.CLASS, StructureKind.OBJECT -> {
                 if (index in 0 until descriptor.elementsCount) {
                     Chain.Struct(chain, descriptor.getElementName(index))
@@ -234,7 +236,6 @@ public class TrackedCompositeDecoder(
             }
             else -> Chain.Seq(chain, index)
         }
-    }
 
     override fun decodeBooleanElement(descriptor: SerialDescriptor, index: Int): Boolean =
         withElement(index) { delegate.decodeBooleanElement(descriptor, index) }
@@ -285,12 +286,13 @@ public class TrackedCompositeDecoder(
     ): T {
         val child = childChain(index)
         return try {
-            val result = delegate.decodeSerializableElement(
-                descriptor,
-                index,
-                TrackingDeserializationStrategy(deserializer, child, track),
-                previousValue,
-            )
+            val result =
+                delegate.decodeSerializableElement(
+                    descriptor,
+                    index,
+                    TrackingDeserializationStrategy(deserializer, child, track),
+                    previousValue,
+                )
             if (descriptor.kind == StructureKind.MAP && index % 2 == 0) {
                 lastKeyString = result?.toString()
             }
@@ -308,12 +310,13 @@ public class TrackedCompositeDecoder(
     ): T? {
         val child = childChain(index)
         return try {
-            val result = delegate.decodeNullableSerializableElement(
-                descriptor,
-                index,
-                TrackingDeserializationStrategy(deserializer, child, track),
-                previousValue,
-            )
+            val result =
+                delegate.decodeNullableSerializableElement(
+                    descriptor,
+                    index,
+                    TrackingDeserializationStrategy(deserializer, child, track),
+                    previousValue,
+                )
             if (descriptor.kind == StructureKind.MAP && index % 2 == 0) {
                 lastKeyString = result?.toString()
             }

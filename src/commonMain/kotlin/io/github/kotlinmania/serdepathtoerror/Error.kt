@@ -9,8 +9,6 @@ public class Error(
     public val path: Path,
     public val original: Throwable,
 ) : Exception(formatMessage(path, original), original) {
-
-
     /**
      * The deserializer's underlying error that occurred.
      */
@@ -21,13 +19,12 @@ public class Error(
      */
     public fun inner(): Throwable = original
 
-    override fun toString(): String {
-        return if (!path.isOnlyUnknown()) {
+    override fun toString(): String =
+        if (!path.isOnlyUnknown()) {
             "$path: $original"
         } else {
             original.toString()
         }
-    }
 
     public companion object {
         public fun new(path: Path, inner: Throwable): Error = Error(path, inner)

@@ -11,7 +11,6 @@ package io.github.kotlinmania.serdepathtoerror
 public data class Path(
     public val segments: List<Segment>,
 ) : Iterable<Segment> {
-
     /**
      * Returns an iterator over the segments of this path.
      */
@@ -115,15 +114,21 @@ public data class Path(
  * Single segment of a path.
  */
 public sealed class Segment {
-    public data class Seq(public val index: Int) : Segment() {
+    public data class Seq(
+        public val index: Int,
+    ) : Segment() {
         override fun toString(): String = "[$index]"
     }
 
-    public data class Map(public val key: String) : Segment() {
+    public data class Map(
+        public val key: String,
+    ) : Segment() {
         override fun toString(): String = key
     }
 
-    public data class Enum(public val variant: String) : Segment() {
+    public data class Enum(
+        public val variant: String,
+    ) : Segment() {
         override fun toString(): String = variant
     }
 

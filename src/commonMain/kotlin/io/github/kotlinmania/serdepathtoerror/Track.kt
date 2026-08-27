@@ -27,11 +27,12 @@ public class Track {
     private fun triggerImpl(chain: Chain, err: Throwable?) {
         if (recordedPath == null) {
             val fromErr = err?.let { extractPathFromException(it) }
-            recordedPath = if (fromErr != null && fromErr.segments.isNotEmpty()) {
-                fromErr
-            } else {
-                Path.fromChain(chain)
-            }
+            recordedPath =
+                if (fromErr != null && fromErr.segments.isNotEmpty()) {
+                    fromErr
+                } else {
+                    Path.fromChain(chain)
+                }
         }
     }
 
@@ -44,10 +45,11 @@ public class Track {
             if (match != null) {
                 val pathStr = match.groupValues[1].trim()
                 val parsed = Path.parseJsonPath(pathStr)
-                val unknownKeyMatch = Regex(
-                    """(?:unknown key|unknown field|Encountered an unknown key)\s+['"`]([^'"`]+)['"`]""",
-                    RegexOption.IGNORE_CASE,
-                ).find(msg)
+                val unknownKeyMatch =
+                    Regex(
+                        """(?:unknown key|unknown field|Encountered an unknown key)\s+['"`]([^'"`]+)['"`]""",
+                        RegexOption.IGNORE_CASE,
+                    ).find(msg)
                 return if (unknownKeyMatch != null) {
                     val field = unknownKeyMatch.groupValues[1]
                     Path(parsed.segments + Segment.Map(field))
@@ -55,10 +57,11 @@ public class Track {
                     parsed
                 }
             }
-            val unknownKeyMatch = Regex(
-                """(?:unknown key|unknown field|Encountered an unknown key)\s+['"`]([^'"`]+)['"`]""",
-                RegexOption.IGNORE_CASE,
-            ).find(msg)
+            val unknownKeyMatch =
+                Regex(
+                    """(?:unknown key|unknown field|Encountered an unknown key)\s+['"`]([^'"`]+)['"`]""",
+                    RegexOption.IGNORE_CASE,
+                ).find(msg)
             if (unknownKeyMatch != null) {
                 val field = unknownKeyMatch.groupValues[1]
                 return Path(listOf(Segment.Map(field)))
