@@ -4,12 +4,12 @@ Based on AST analysis, here are the concrete next steps.
 
 ## Summary
 
-- **Files Present:** 5/5 (100.0%)
-- **Function parity:** 16/133 matched (target 98) — 12.0%
-- **Class/type parity:** 11/32 matched (target 21) — 34.4%
-- **Combined symbol parity:** 27/165 matched (target 119) — 16.4%
-- **Average inline-code cosine:** 0.20 (function body across 5 matched files)
-- **Average documentation cosine:** 0.40 (doc text across 5 matched files)
+- **Files Present:** 5/7 (71.4%)
+- **Function parity:** 16/148 matched (target 98) — 10.8%
+- **Class/type parity:** 11/37 matched (target 28) — 29.7%
+- **Combined symbol parity:** 27/185 matched (target 126) — 14.6%
+- **Average inline-code cosine:** 0.25 (function body across 4 matched files)
+- **Average documentation cosine:** 0.39 (doc text across 4 matched files)
 - **Cheat-zeroed Files:** 3
 - **Critical Issues:** 4 files with <0.60 function similarity
 
@@ -27,7 +27,7 @@ No missing high-value files detected.
 
 Every matched file is listed below with function and type symbol parity.
 
-### 1. wrap
+### 1. serde_path_to_error.wrap
 
 - **Target:** `serdepathtoerror.Wrap`
 - **Similarity:** 0.96
@@ -38,7 +38,7 @@ Every matched file is listed below with function and type symbol parity.
 - **Types:** 2/2 matched
 - **Missing types:** _none_
 
-### 2. de
+### 2. serde_path_to_error.de
 
 - **Target:** `serdepathtoerror.De [ZERO]`
 - **Similarity:** 0.00
@@ -49,7 +49,7 @@ Every matched file is listed below with function and type symbol parity.
 - **Types:** 1/8 matched (target 3)
 - **Missing types:** `Error`, `Value`, `Variant`, `CaptureKey`, `TrackedSeed`, `SeqAccess`, `MapAccess`
 
-### 3. ser
+### 3. serde_path_to_error.ser
 
 - **Target:** `serdepathtoerror.Ser`
 - **Similarity:** 0.04
@@ -60,7 +60,7 @@ Every matched file is listed below with function and type symbol parity.
 - **Types:** 3/14 matched (target 5)
 - **Missing types:** `Ok`, `Error`, `SerializeSeq`, `SerializeTuple`, `SerializeTupleStruct`, `SerializeTupleVariant`, `SerializeMap`, `SerializeStruct`, `SerializeStructVariant`, `TrackedValue`, `CaptureKey`
 
-### 4. path
+### 4. serde_path_to_error.path
 
 - **Target:** `serdepathtoerror.Path [ZERO]`
 - **Similarity:** 0.00
@@ -68,12 +68,12 @@ Every matched file is listed below with function and type symbol parity.
 - **Priority Score:** 81610.0
 - **Functions:** 5/11 matched (target 13)
 - **Missing functions:** `into_iter`, `next`, `size_hint`, `next_back`, `len`, `fmt`
-- **Types:** 3/5 matched (target 7)
+- **Types:** 3/5 matched (target 14)
 - **Missing types:** `Item`, `IntoIter`
 
-### 5. lib
+### 5. serde_path_to_error.lib
 
-- **Target:** `serdepathtoerror.Lib [ZERO]`
+- **Target:** `serdepathtoerror.Lib [STUB]`
 - **Similarity:** 0.00
 - **Dependents:** 0
 - **Priority Score:** 31110.0

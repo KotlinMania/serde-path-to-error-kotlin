@@ -1,3 +1,4 @@
+// port-lint: source serde_path_to_error/src/path.rs
 package io.github.kotlinmania.serdepathtoerror
 
 /**
