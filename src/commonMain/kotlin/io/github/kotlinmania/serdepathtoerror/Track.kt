@@ -41,9 +41,9 @@ public class Track {
 
         internal fun extractPathFromException(err: Throwable): Path? {
             val msg = err.message ?: return null
-            val match = Regex("""at path:\s*(\$[^,\r\n]*)""", RegexOption.IGNORE_CASE).find(msg)
-            if (match != null) {
-                val pathStr = match.groupValues[1].trim()
+            val matchResult = Regex("""at path:\s*(\$[^,\r\n]*)""", RegexOption.IGNORE_CASE).find(msg)
+            if (matchResult != null) {
+                val pathStr = matchResult.groupValues[1].trim()
                 val parsed = Path.parseJsonPath(pathStr)
                 val unknownKeyMatch =
                     Regex(

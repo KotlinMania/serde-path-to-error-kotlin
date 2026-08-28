@@ -8,9 +8,9 @@ Based on AST analysis, here are the concrete next steps.
 - **Function parity:** 16/133 matched (target 98) — 12.0%
 - **Class/type parity:** 11/32 matched (target 28) — 34.4%
 - **Combined symbol parity:** 27/165 matched (target 126) — 16.4%
-- **Average inline-code cosine:** 0.20 (function body across 5 matched files)
+- **Average inline-code cosine:** 0.38 (function body across 5 matched files)
 - **Average documentation cosine:** 0.40 (doc text across 5 matched files)
-- **Cheat-zeroed Files:** 3
+- **Cheat-zeroed Files:** 0
 - **Critical Issues:** 4 files with <0.60 function similarity
 
 ## Priority 1: Fix Incomplete High-Dependency Files
@@ -40,10 +40,10 @@ Every matched file is listed below with function and type symbol parity.
 
 ### 2. de
 
-- **Target:** `serdepathtoerror.De [ZERO]`
-- **Similarity:** 0.00
+- **Target:** `serdepathtoerror.De`
+- **Similarity:** 0.02
 - **Dependents:** 0
-- **Priority Score:** 767910.0
+- **Priority Score:** 767909.9
 - **Functions:** 2/71 matched (target 36)
 - **Missing functions:** `deserialize_any`, `deserialize_bool`, `deserialize_u8`, `deserialize_u16`, `deserialize_u32`, `deserialize_u64`, `deserialize_u128`, `deserialize_i8`, `deserialize_i16`, `deserialize_i32`, `deserialize_i64`, `deserialize_i128`, `deserialize_f32`, `deserialize_f64`, `deserialize_char`, `deserialize_str`, `deserialize_string`, `deserialize_bytes`, `deserialize_byte_buf`, `deserialize_option`, `deserialize_unit`, `deserialize_unit_struct`, `deserialize_newtype_struct`, `deserialize_seq`, `deserialize_tuple`, `deserialize_tuple_struct`, `deserialize_map`, `deserialize_struct`, `deserialize_enum`, `deserialize_ignored_any`, `deserialize_identifier`, `is_human_readable`, `expecting`, `visit_bool`, `visit_i8`, `visit_i16`, `visit_i32`, `visit_i64`, `visit_i128`, `visit_u8`, `visit_u16`, `visit_u32`, `visit_u64`, `visit_u128`, `visit_f32`, `visit_f64`, `visit_char`, `visit_str`, `visit_borrowed_str`, `visit_string`, `visit_unit`, `visit_none`, `visit_some`, `visit_newtype_struct`, `visit_seq`, `visit_map`, `visit_enum`, `visit_bytes`, `visit_borrowed_bytes`, `visit_byte_buf`, `variant_seed`, `unit_variant`, `newtype_variant_seed`, `tuple_variant`, `struct_variant`, `next_element_seed`, `size_hint`, `next_key_seed`, `next_value_seed`
 - **Types:** 1/8 matched (target 3)
@@ -62,10 +62,10 @@ Every matched file is listed below with function and type symbol parity.
 
 ### 4. path
 
-- **Target:** `serdepathtoerror.Path [ZERO]`
-- **Similarity:** 0.00
+- **Target:** `serdepathtoerror.Path`
+- **Similarity:** 0.31
 - **Dependents:** 0
-- **Priority Score:** 81610.0
+- **Priority Score:** 81606.9
 - **Functions:** 5/11 matched (target 13)
 - **Missing functions:** `into_iter`, `next`, `size_hint`, `next_back`, `len`, `fmt`
 - **Types:** 3/5 matched (target 14)
@@ -73,10 +73,10 @@ Every matched file is listed below with function and type symbol parity.
 
 ### 5. lib
 
-- **Target:** `serdepathtoerror.Lib [ZERO]`
-- **Similarity:** 0.00
+- **Target:** `serdepathtoerror.Lib`
+- **Similarity:** 0.56
 - **Dependents:** 0
-- **Priority Score:** 31110.0
+- **Priority Score:** 31104.4
 - **Functions:** 6/8 matched (target 11)
 - **Missing functions:** `fmt`, `source`
 - **Types:** 2/3 matched (target 4)
