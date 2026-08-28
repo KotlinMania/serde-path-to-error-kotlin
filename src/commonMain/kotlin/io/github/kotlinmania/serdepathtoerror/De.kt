@@ -193,13 +193,13 @@ public class TrackedCompositeDecoder(
 
     private fun extractChainFromException(e: Throwable): Chain? {
         val msg = e.message ?: return null
-        val match =
+        val matchResult =
             Regex(
                 """(?:unknown key|unknown field|Encountered an unknown key)\s+['"`]([^'"`]+)['"`]""",
                 RegexOption.IGNORE_CASE,
             ).find(msg)
-        if (match != null) {
-            val field = match.groupValues[1]
+        if (matchResult != null) {
+            val field = matchResult.groupValues[1]
             return Chain.Struct(chain, field)
         }
         return null

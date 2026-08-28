@@ -48,11 +48,11 @@ public data class Path(
 
             val segments = mutableListOf<Segment>()
             val regex = Regex("""\[(?:'([^']+)'|"([^"]+)"|(\d+))\]|([^.\[\]]+)""")
-            for (match in regex.findAll(clean)) {
-                val singleQuoted = match.groups[1]?.value
-                val doubleQuoted = match.groups[2]?.value
-                val indexStr = match.groups[3]?.value
-                val ident = match.groups[4]?.value
+            for (matchResult in regex.findAll(clean)) {
+                val singleQuoted = matchResult.groups[1]?.value
+                val doubleQuoted = matchResult.groups[2]?.value
+                val indexStr = matchResult.groups[3]?.value
+                val ident = matchResult.groups[4]?.value
 
                 if (singleQuoted != null) {
                     segments.add(Segment.Map(singleQuoted))
