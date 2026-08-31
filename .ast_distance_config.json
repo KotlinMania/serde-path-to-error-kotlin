@@ -2,7 +2,7 @@
   "type": "port",
   "name": "serde-path-to-error-kotlin",
   "source": {
-    "path": "tmp/serde_path_to_error/src",
+    "path": "tmp",
     "lang": "rust"
   },
   "target": {
