@@ -1,4 +1,4 @@
-// port-lint: tests serde_path_to_error/src/deserialize.rs
+// port-lint: tests tests/deserialize.rs
 
 @file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 
