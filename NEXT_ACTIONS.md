@@ -4,13 +4,13 @@ Based on AST analysis, here are the concrete next steps.
 
 ## Summary
 
-- **Files Present:** 5/5 (100.0%)
-- **Function parity:** 16/133 matched (target 98) — 12.0%
-- **Class/type parity:** 11/32 matched (target 28) — 34.4%
-- **Combined symbol parity:** 27/165 matched (target 126) — 16.4%
+- **Files Present:** 5/7 (71.4%)
+- **Function parity:** 10/140 matched (target 87) — 7.1%
+- **Class/type parity:** 9/34 matched (target 24) — 26.5%
+- **Combined symbol parity:** 19/174 matched (target 111) — 10.9%
 - **Average inline-code cosine:** 0.33 (function body across 4 matched files)
 - **Average documentation cosine:** 0.39 (doc text across 4 matched files)
-- **Cheat-zeroed Files:** 1
+- **Cheat-zeroed Files:** 0
 - **Critical Issues:** 4 files with <0.60 function similarity
 
 ## Priority 1: Fix Incomplete High-Dependency Files
@@ -27,9 +27,9 @@ No missing high-value files detected.
 
 Every matched file is listed below with function and type symbol parity.
 
-### 1. wrap
+### 1. serde_path_to_error.wrap
 
-- **Target:** `serdepathtoerror.Wrap [PROVENANCE-FALLBACK]`
+- **Target:** `serdepathtoerror.Wrap`
 - **Similarity:** 0.96
 - **Dependents:** 1
 - **Priority Score:** 1000300.4
@@ -37,13 +37,10 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing functions:** _none_
 - **Types:** 2/2 matched
 - **Missing types:** _none_
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `serde_path_to_error/src/wrap.rs` vs expected `wrap.rs`
-- **Proposed provenance header:** `// port-lint: source wrap.rs` (current: `// port-lint: source serde_path_to_error/src/wrap.rs`)
-- **Lint issues:** 1
 
-### 2. de
+### 2. serde_path_to_error.de
 
-- **Target:** `serdepathtoerror.De [PROVENANCE-FALLBACK]`
+- **Target:** `serdepathtoerror.De`
 - **Similarity:** 0.02
 - **Dependents:** 0
 - **Priority Score:** 767909.9
@@ -51,13 +48,10 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing functions:** `deserialize_any`, `deserialize_bool`, `deserialize_u8`, `deserialize_u16`, `deserialize_u32`, `deserialize_u64`, `deserialize_u128`, `deserialize_i8`, `deserialize_i16`, `deserialize_i32`, `deserialize_i64`, `deserialize_i128`, `deserialize_f32`, `deserialize_f64`, `deserialize_char`, `deserialize_str`, `deserialize_string`, `deserialize_bytes`, `deserialize_byte_buf`, `deserialize_option`, `deserialize_unit`, `deserialize_unit_struct`, `deserialize_newtype_struct`, `deserialize_seq`, `deserialize_tuple`, `deserialize_tuple_struct`, `deserialize_map`, `deserialize_struct`, `deserialize_enum`, `deserialize_ignored_any`, `deserialize_identifier`, `is_human_readable`, `expecting`, `visit_bool`, `visit_i8`, `visit_i16`, `visit_i32`, `visit_i64`, `visit_i128`, `visit_u8`, `visit_u16`, `visit_u32`, `visit_u64`, `visit_u128`, `visit_f32`, `visit_f64`, `visit_char`, `visit_str`, `visit_borrowed_str`, `visit_string`, `visit_unit`, `visit_none`, `visit_some`, `visit_newtype_struct`, `visit_seq`, `visit_map`, `visit_enum`, `visit_bytes`, `visit_borrowed_bytes`, `visit_byte_buf`, `variant_seed`, `unit_variant`, `newtype_variant_seed`, `tuple_variant`, `struct_variant`, `next_element_seed`, `size_hint`, `next_key_seed`, `next_value_seed`
 - **Types:** 1/8 matched (target 3)
 - **Missing types:** `Error`, `Value`, `Variant`, `CaptureKey`, `TrackedSeed`, `SeqAccess`, `MapAccess`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `serde_path_to_error/src/de.rs` vs expected `de.rs`
-- **Proposed provenance header:** `// port-lint: source de.rs` (current: `// port-lint: source serde_path_to_error/src/de.rs`)
-- **Lint issues:** 1
 
-### 3. ser
+### 3. serde_path_to_error.ser
 
-- **Target:** `serdepathtoerror.Ser [PROVENANCE-FALLBACK]`
+- **Target:** `serdepathtoerror.Ser`
 - **Similarity:** 0.04
 - **Dependents:** 0
 - **Priority Score:** 515609.6
@@ -65,13 +59,10 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing functions:** `serialize_bool`, `serialize_i8`, `serialize_i16`, `serialize_i32`, `serialize_i64`, `serialize_i128`, `serialize_u8`, `serialize_u16`, `serialize_u32`, `serialize_u64`, `serialize_u128`, `serialize_f32`, `serialize_f64`, `serialize_char`, `serialize_str`, `serialize_bytes`, `serialize_none`, `serialize_some`, `serialize_unit`, `serialize_unit_struct`, `serialize_unit_variant`, `serialize_newtype_struct`, `serialize_newtype_variant`, `serialize_seq`, `serialize_tuple`, `serialize_tuple_struct`, `serialize_tuple_variant`, `serialize_map`, `serialize_struct`, `serialize_struct_variant`, `collect_str`, `is_human_readable`, `serialize_element`, `end`, `serialize_field`, `serialize_key`, `serialize_value`, `skip_field`, `collect_seq`, `collect_map`
 - **Types:** 3/14 matched (target 5)
 - **Missing types:** `Ok`, `Error`, `SerializeSeq`, `SerializeTuple`, `SerializeTupleStruct`, `SerializeTupleVariant`, `SerializeMap`, `SerializeStruct`, `SerializeStructVariant`, `TrackedValue`, `CaptureKey`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `serde_path_to_error/src/ser.rs` vs expected `ser.rs`
-- **Proposed provenance header:** `// port-lint: source ser.rs` (current: `// port-lint: source serde_path_to_error/src/ser.rs`)
-- **Lint issues:** 1
 
-### 4. path
+### 4. serde_path_to_error.path
 
-- **Target:** `serdepathtoerror.Path [PROVENANCE-FALLBACK]`
+- **Target:** `serdepathtoerror.Path`
 - **Similarity:** 0.31
 - **Dependents:** 0
 - **Priority Score:** 81606.9
@@ -79,31 +70,6 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing functions:** `into_iter`, `next`, `size_hint`, `next_back`, `len`, `fmt`
 - **Types:** 3/5 matched (target 14)
 - **Missing types:** `Item`, `IntoIter`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `serde_path_to_error/src/path.rs` vs expected `path.rs`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `serde_path_to_error/src/path.rs` vs expected `path.rs`
-- **Proposed provenance header:** `// port-lint: source path.rs` (current: `// port-lint: source serde_path_to_error/src/path.rs`)
-- **Proposed provenance header:** `// port-lint: source path.rs` (current: `// port-lint: source serde_path_to_error/src/path.rs`)
-- **Lint issues:** 2
-
-### 5. lib
-
-- **Target:** `serdepathtoerror.Lib [STUB] [PROVENANCE-FALLBACK]`
-- **Similarity:** 0.00
-- **Dependents:** 0
-- **Priority Score:** 31110.0
-- **Functions:** 6/8 matched (target 11)
-- **Missing functions:** `fmt`, `source`
-- **Types:** 2/3 matched (target 4)
-- **Missing types:** `Chain`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `serde_path_to_error/src/lib.rs` vs expected `lib.rs`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `serde_path_to_error/src/lib.rs` vs expected `lib.rs`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `serde_path_to_error/src/lib.rs` vs expected `lib.rs`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `tests:serde_path_to_error/src/lib.rs` vs expected `lib.rs`
-- **Proposed provenance header:** `// port-lint: source lib.rs` (current: `// port-lint: source serde_path_to_error/src/lib.rs`)
-- **Proposed provenance header:** `// port-lint: source lib.rs` (current: `// port-lint: source serde_path_to_error/src/lib.rs`)
-- **Proposed provenance header:** `// port-lint: source lib.rs` (current: `// port-lint: source serde_path_to_error/src/lib.rs`)
-- **Proposed provenance header:** `// port-lint: tests lib.rs` (current: `// port-lint: tests serde_path_to_error/src/lib.rs`)
-- **Lint issues:** 4
 
 ## Success Criteria
 
@@ -113,4 +79,17 @@ For each file to be considered "complete":
 - All tests ported
 - Documentation ported
 - port-lint header present
+
+## Reexport / Wiring Modules
+
+These files match `reexport_modules` patterns in `.ast_distance_config.json`. They are filtered out of
+normal priority and missing-file ladders because they are wiring
+modules, not direct logic ports. Consult them for call-site routing;
+do not treat them as the next implementation target by default.
+
+### Matched
+
+| Source | Target | Path |
+|--------|--------|------|
+| `serde_path_to_error.lib` | `serdepathtoerror.Lib` | `serde_path_to_error/src/lib` |
 
