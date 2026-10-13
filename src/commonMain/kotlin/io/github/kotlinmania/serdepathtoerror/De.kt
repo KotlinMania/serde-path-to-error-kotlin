@@ -173,6 +173,10 @@ public class TrackedCompositeDecoder(
     override val serializersModule: SerializersModule
         get() = delegate.serializersModule
 
+    override fun decodeSequentially(): Boolean = delegate.decodeSequentially()
+
+    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = delegate.decodeCollectionSize(descriptor)
+
     override fun endStructure(descriptor: SerialDescriptor) {
         try {
             delegate.endStructure(descriptor)

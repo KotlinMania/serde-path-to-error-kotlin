@@ -42,7 +42,7 @@ internal data class Inner(
 @Serializable
 internal data class FailingNode(
     @Serializable(with = FailingSerializer::class)
-    val value: String = "",
+    val value: String,
 )
 
 internal class TrackingSerializer<T>(
@@ -80,7 +80,7 @@ class SerializeTest {
 
     @Test
     fun testMapNonStringKey() {
-        val innerMap = mapOf("dummy" to FailingNode())
+        val innerMap = mapOf("dummy" to FailingNode("fail"))
         val midMap = mapOf("k" to innerMap)
         val map = mapOf(100 to midMap)
 
