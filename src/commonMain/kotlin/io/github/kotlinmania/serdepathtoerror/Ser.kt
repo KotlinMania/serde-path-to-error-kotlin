@@ -178,6 +178,9 @@ public class TrackedCompositeEncoder(
     override val serializersModule: SerializersModule
         get() = delegate.serializersModule
 
+    override fun shouldEncodeElementDefault(descriptor: SerialDescriptor, index: Int): Boolean =
+        delegate.shouldEncodeElementDefault(descriptor, index)
+
     override fun endStructure(descriptor: SerialDescriptor) {
         try {
             delegate.endStructure(descriptor)
