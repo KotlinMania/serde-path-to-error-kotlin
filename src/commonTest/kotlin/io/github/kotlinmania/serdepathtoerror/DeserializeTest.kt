@@ -229,6 +229,15 @@ class DeserializeTest {
     }
 
     @Test
+    fun testSyntaxError() {
+        val j = """{
+            "dependency": {
+                "error": *
+        }"""
+        testDeserializeError(PackageOpt.serializer(), j, "dependency.error")
+    }
+
+    @Test
     fun testU128() {
         val j = """{
             "n": "130033514578017493995102500318550798591"
