@@ -1,9 +1,10 @@
-// port-lint: source lib.rs
-
 package io.github.kotlinmania.serdepathtoerror
 
 /**
- * State for bookkeeping across nested deserializer/serializer calls.
+ * State for bookkeeping across nested deserializer calls.
+ *
+ * You don't need this if you are using [deserialize]. If you are managing your own
+ * [Deserializer] or [Serializer], see the usage example in the crate documentation.
  */
 public class Track {
     private var recordedPath: Path? = null
@@ -19,54 +20,18 @@ public class Track {
      */
     public fun path(): Path = recordedPath ?: Path.empty()
 
-    public fun <E : Throwable> trigger(chain: Chain, err: E): E {
-        triggerImpl(chain, err)
+    internal fun <E> trigger(chain: Chain, err: E): E {
+        triggerImpl(chain)
         return err
     }
 
-    private fun triggerImpl(chain: Chain, err: Throwable?) {
+    private fun triggerImpl(chain: Chain) {
         if (recordedPath == null) {
-            val fromErr = err?.let { extractPathFromException(it) }
-            recordedPath =
-                if (fromErr != null && fromErr.segments.isNotEmpty()) {
-                    fromErr
-                } else {
-                    Path.fromChain(chain)
-                }
+            recordedPath = Path.fromChain(chain)
         }
     }
 
     public companion object {
         public fun new(): Track = Track()
-
-        internal fun extractPathFromException(err: Throwable): Path? {
-            val msg = err.message ?: return null
-            val matchResult = Regex("""at path:\s*(\$[^,\r\n]*)""", RegexOption.IGNORE_CASE).find(msg)
-            if (matchResult != null) {
-                val pathStr = matchResult.groupValues[1].trim()
-                val parsed = Path.parseJsonPath(pathStr)
-                val unknownKeyMatch =
-                    Regex(
-                        """(?:unknown key|unknown field|Encountered an unknown key)\s+['"`]([^'"`]+)['"`]""",
-                        RegexOption.IGNORE_CASE,
-                    ).find(msg)
-                return if (unknownKeyMatch != null) {
-                    val field = unknownKeyMatch.groupValues[1]
-                    Path(parsed.segments + Segment.Map(field))
-                } else {
-                    parsed
-                }
-            }
-            val unknownKeyMatch =
-                Regex(
-                    """(?:unknown key|unknown field|Encountered an unknown key)\s+['"`]([^'"`]+)['"`]""",
-                    RegexOption.IGNORE_CASE,
-                ).find(msg)
-            if (unknownKeyMatch != null) {
-                val field = unknownKeyMatch.groupValues[1]
-                return Path(listOf(Segment.Map(field)))
-            }
-            return null
-        }
     }
 }
