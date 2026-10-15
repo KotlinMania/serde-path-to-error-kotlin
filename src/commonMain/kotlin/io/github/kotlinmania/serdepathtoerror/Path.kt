@@ -1,12 +1,12 @@
 // port-lint: source path.rs
-
 package io.github.kotlinmania.serdepathtoerror
 
 /**
  * Path to the error value in the input, like `dependencies.serde.typo1`.
  *
  * Use `path.toString()` to get a string representation of the path with
- * segments separated by periods, or iterate over individual segments of the path.
+ * segments separated by periods, or use `path.iter()` / iterate over
+ * individual segments of the path.
  */
 public data class Path(
     public val segments: List<Segment>,
@@ -37,56 +37,31 @@ public data class Path(
 
     public fun isEmpty(): Boolean = segments.isEmpty()
 
-    public fun isOnlyUnknown(): Boolean = segments.all { it.isUnknown() }
+    public fun isOnlyUnknown(): Boolean = segments.all { it is Segment.Unknown }
 
     public companion object {
         public fun empty(): Path = Path(emptyList())
 
-        internal fun parseJsonPath(jsonPath: String): Path {
-            val clean = jsonPath.removePrefix("$").removePrefix(".")
-            if (clean.isEmpty()) return empty()
-
-            val segments = mutableListOf<Segment>()
-            val regex = Regex("""\[(?:'([^']+)'|"([^"]+)"|(\d+))\]|([^.\[\]]+)""")
-            for (matchResult in regex.findAll(clean)) {
-                val singleQuoted = matchResult.groups[1]?.value
-                val doubleQuoted = matchResult.groups[2]?.value
-                val indexStr = matchResult.groups[3]?.value
-                val ident = matchResult.groups[4]?.value
-
-                if (singleQuoted != null) {
-                    segments.add(Segment.Map(singleQuoted))
-                } else if (doubleQuoted != null) {
-                    segments.add(Segment.Map(doubleQuoted))
-                } else if (indexStr != null) {
-                    segments.add(Segment.Seq(indexStr.toInt()))
-                } else if (ident != null) {
-                    segments.add(Segment.Map(ident))
-                }
-            }
-            return Path(segments.toList())
-        }
-
         internal fun fromChain(initialChain: Chain): Path {
-            val list = mutableListOf<Segment>()
             var chain: Chain? = initialChain
+            val segments = mutableListOf<Segment>()
             while (chain != null) {
                 when (chain) {
                     is Chain.Root -> break
                     is Chain.Seq -> {
-                        list.add(Segment.Seq(chain.index))
+                        segments.add(Segment.Seq(chain.index))
                         chain = chain.parent
                     }
                     is Chain.Map -> {
-                        list.add(Segment.Map(chain.key))
+                        segments.add(Segment.Map(chain.key))
                         chain = chain.parent
                     }
                     is Chain.Struct -> {
-                        list.add(Segment.Map(chain.key))
+                        segments.add(Segment.Map(chain.key))
                         chain = chain.parent
                     }
                     is Chain.Enum -> {
-                        list.add(Segment.Enum(chain.variant))
+                        segments.add(Segment.Enum(chain.variant))
                         chain = chain.parent
                     }
                     is Chain.Some -> {
@@ -99,13 +74,13 @@ public data class Path(
                         chain = chain.parent
                     }
                     is Chain.NonStringKey -> {
-                        list.add(Segment.Unknown)
+                        segments.add(Segment.Unknown)
                         chain = chain.parent
                     }
                 }
             }
-            list.reverse()
-            return Path(list.toList())
+            segments.reverse()
+            return Path(segments)
         }
     }
 }
@@ -138,5 +113,3 @@ public sealed class Segment {
 
     public fun isUnknown(): Boolean = this is Unknown
 }
-
-public typealias Segments = Iterator<Segment>

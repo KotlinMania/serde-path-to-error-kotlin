@@ -1,359 +1,544 @@
 // port-lint: source de.rs
-
-@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
-
 package io.github.kotlinmania.serdepathtoerror
 
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.descriptors.PolymorphicKind
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.modules.SerializersModule
+import io.github.kotlinmania.serde.SerdeError
+import io.github.kotlinmania.serde.SerdeResult
+import io.github.kotlinmania.serdecore.de.Deserialize
+import io.github.kotlinmania.serdecore.de.DeserializeSeed
+import io.github.kotlinmania.serdecore.de.Deserializer
+import io.github.kotlinmania.serdecore.de.EnumAccess
+import io.github.kotlinmania.serdecore.de.MapAccess
+import io.github.kotlinmania.serdecore.de.SeqAccess
+import io.github.kotlinmania.serdecore.de.VariantAccess
+import io.github.kotlinmania.serdecore.de.Visitor
 
 /**
  * Entry point for deserializing with path tracking.
  */
-public fun <T> deserialize(deserializer: DeserializationStrategy<T>, decoder: Decoder): T {
+public fun <T> deserialize(
+    deserializer: Deserializer,
+    deserialize: Deserialize<T>,
+): PathResult<T, SerdeError> {
     val track = Track.new()
-    val trackedDecoder = Deserializer.new(decoder, track)
-    return try {
-        deserializer.deserialize(trackedDecoder)
-    } catch (e: Error) {
-        throw e
-    } catch (e: Throwable) {
-        val fromErr = Track.extractPathFromException(e)
-        val finalPath =
-            if (fromErr != null && fromErr.segments.isNotEmpty()) {
-                fromErr
-            } else {
-                track.path()
-            }
-        throw Error(finalPath, e)
+    val trackedDeserializer = Deserializer(deserializer, Chain.Root, track)
+    val result = deserialize.deserialize(trackedDeserializer)
+    return when (result) {
+        is SerdeResult.Success -> PathResult.ok(result.value)
+        is SerdeResult.Failure -> PathResult.err(Error(track.path(), result.error))
+    }
+}
+
+/**
+ * Entry point for deserializing with path tracking using a [DeserializeSeed].
+ */
+public fun <T> deserialize(
+    deserializer: Deserializer,
+    seed: DeserializeSeed<T>,
+): PathResult<T, SerdeError> {
+    val track = Track.new()
+    val trackedDeserializer = Deserializer(deserializer, Chain.Root, track)
+    val result = seed.deserialize(trackedDeserializer)
+    return when (result) {
+        is SerdeResult.Success -> PathResult.ok(result.value)
+        is SerdeResult.Failure -> PathResult.err(Error(track.path(), result.error))
     }
 }
 
 /**
  * Deserializer adapter that records path to deserialization errors.
  */
-public class Deserializer private constructor(
-    private val de: Decoder,
+public class Deserializer internal constructor(
+    private val de: Deserializer,
+    internal val chain: Chain,
+    private val track: Track,
+) : Deserializer {
+    public constructor(de: Deserializer, track: Track) : this(de, Chain.Root, track)
+
+    override fun isHumanReadable(): Boolean = de.isHumanReadable()
+
+    override fun <V> deserializeAny(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeAny(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeBool(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeBool(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeI8(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeI8(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeI16(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeI16(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeI32(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeI32(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeI64(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeI64(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeI128(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeI128(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeU8(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeU8(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeU16(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeU16(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeU32(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeU32(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeU64(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeU64(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeU128(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeU128(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeF32(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeF32(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeF64(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeF64(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeChar(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeChar(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeStr(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeStr(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeString(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeString(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeBytes(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeBytes(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeByteBuf(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeByteBuf(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeOption(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeOption(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeUnit(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeUnit(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeUnitStruct(name: String, visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeUnitStruct(name, WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeNewtypeStruct(name: String, visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeNewtypeStruct(name, WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeSeq(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeSeq(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeTuple(len: Int, visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeTuple(len, WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeTupleStruct(name: String, len: Int, visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeTupleStruct(name, len, WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeMap(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeMap(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeStruct(name: String, fields: List<String>, visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeStruct(name, fields, WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeEnum(name: String, variants: List<String>, visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeEnum(name, variants, WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeIgnoredAny(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeIgnoredAny(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <V> deserializeIdentifier(visitor: Visitor<V>): SerdeResult<V> =
+        de.deserializeIdentifier(WrapVisitor(visitor, chain, track)).mapError { track.trigger(chain, it) }
+}
+
+private inline fun <T> SerdeResult<T>.mapError(transform: (SerdeError) -> SerdeError): SerdeResult<T> =
+    when (this) {
+        is SerdeResult.Success -> this
+        is SerdeResult.Failure -> SerdeResult.failure(transform(error))
+    }
+
+internal class WrapVisitor<V>(
+    private val delegate: Visitor<V>,
     private val chain: Chain,
     private val track: Track,
-) : Decoder {
-    public constructor(de: Decoder, track: Track) : this(de, Chain.Root, track)
+) : Visitor<V> {
+    override fun expecting(): String = delegate.expecting()
 
-    override val serializersModule: SerializersModule
-        get() = de.serializersModule
+    override fun visitBool(v: Boolean): SerdeResult<V> =
+        delegate.visitBool(v).mapError { track.trigger(chain, it) }
 
-    override fun decodeNotNullMark(): Boolean =
-        try {
-            de.decodeNotNullMark()
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
+    override fun visitI8(v: Byte): SerdeResult<V> =
+        delegate.visitI8(v).mapError { track.trigger(chain, it) }
+
+    override fun visitI16(v: Short): SerdeResult<V> =
+        delegate.visitI16(v).mapError { track.trigger(chain, it) }
+
+    override fun visitI32(v: Int): SerdeResult<V> =
+        delegate.visitI32(v).mapError { track.trigger(chain, it) }
+
+    override fun visitI64(v: Long): SerdeResult<V> =
+        delegate.visitI64(v).mapError { track.trigger(chain, it) }
+
+    override fun visitI128(v: String): SerdeResult<V> =
+        delegate.visitI128(v).mapError { track.trigger(chain, it) }
+
+    override fun visitU8(v: UByte): SerdeResult<V> =
+        delegate.visitU8(v).mapError { track.trigger(chain, it) }
+
+    override fun visitU16(v: UShort): SerdeResult<V> =
+        delegate.visitU16(v).mapError { track.trigger(chain, it) }
+
+    override fun visitU32(v: UInt): SerdeResult<V> =
+        delegate.visitU32(v).mapError { track.trigger(chain, it) }
+
+    override fun visitU64(v: ULong): SerdeResult<V> =
+        delegate.visitU64(v).mapError { track.trigger(chain, it) }
+
+    override fun visitU128(v: String): SerdeResult<V> =
+        delegate.visitU128(v).mapError { track.trigger(chain, it) }
+
+    override fun visitF32(v: Float): SerdeResult<V> =
+        delegate.visitF32(v).mapError { track.trigger(chain, it) }
+
+    override fun visitF64(v: Double): SerdeResult<V> =
+        delegate.visitF64(v).mapError { track.trigger(chain, it) }
+
+    override fun visitChar(v: Char): SerdeResult<V> =
+        delegate.visitChar(v).mapError { track.trigger(chain, it) }
+
+    override fun visitStr(v: String): SerdeResult<V> =
+        delegate.visitStr(v).mapError { track.trigger(chain, it) }
+
+    override fun visitString(v: String): SerdeResult<V> =
+        delegate.visitString(v).mapError { track.trigger(chain, it) }
+
+    override fun visitBytes(v: ByteArray): SerdeResult<V> =
+        delegate.visitBytes(v).mapError { track.trigger(chain, it) }
+
+    override fun visitNone(): SerdeResult<V> =
+        delegate.visitNone().mapError { track.trigger(chain, it) }
+
+    override fun <D : Deserializer> visitSome(deserializer: D): SerdeResult<V> =
+        delegate
+            .visitSome(Deserializer(deserializer, Chain.Some(chain), track))
+            .mapError { track.trigger(chain, it) }
+
+    override fun visitUnit(): SerdeResult<V> =
+        delegate.visitUnit().mapError { track.trigger(chain, it) }
+
+    override fun <D : Deserializer> visitNewtypeStruct(deserializer: D): SerdeResult<V> =
+        delegate
+            .visitNewtypeStruct(Deserializer(deserializer, Chain.NewtypeStruct(chain), track))
+            .mapError { track.trigger(chain, it) }
+
+    override fun <A : SeqAccess> visitSeq(access: A): SerdeResult<V> =
+        delegate.visitSeq(PathSeqAccess(access, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <A : MapAccess> visitMap(access: A): SerdeResult<V> =
+        delegate.visitMap(PathMapAccess(access, chain, track)).mapError { track.trigger(chain, it) }
+
+    override fun <A : EnumAccess> visitEnum(access: A): SerdeResult<V> =
+        delegate.visitEnum(PathEnumAccess(access, chain, track)).mapError { track.trigger(chain, it) }
+}
+
+internal class PathSeqAccess(
+    private val delegate: SeqAccess,
+    private val chain: Chain,
+    private val track: Track,
+) : SeqAccess {
+    private var index = 0
+
+    override fun <T> nextElementSeed(seed: DeserializeSeed<T>): SerdeResult<T?> {
+        val elementChain = Chain.Seq(chain, index)
+        index += 1
+        return delegate
+            .nextElementSeed(TrackedSeed(seed, elementChain, track))
+            .mapError { track.trigger(chain, it) }
+    }
+
+    override fun sizeHint(): Int? = delegate.sizeHint()
+}
+
+internal class PathMapAccess(
+    private val delegate: MapAccess,
+    private val chain: Chain,
+    private val track: Track,
+) : MapAccess {
+    private var capturedKey: String? = null
+
+    override fun <K> nextKeySeed(seed: DeserializeSeed<K>): SerdeResult<K?> {
+        val captureSeed = CaptureKeySeed(seed) { capturedKey = it }
+        return delegate.nextKeySeed(captureSeed).mapError { err ->
+            val key = capturedKey
+            capturedKey = null
+            val errorChain = if (key != null) Chain.Map(chain, key) else Chain.NonStringKey(chain)
+            track.trigger(errorChain, err)
         }
+    }
 
-    override fun decodeNull(): Nothing? =
-        try {
-            de.decodeNull()
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
+    override fun <V> nextValueSeed(seed: DeserializeSeed<V>): SerdeResult<V> {
+        val key = capturedKey
+        capturedKey = null
+        val valueChain = if (key != null) Chain.Map(chain, key) else Chain.NonStringKey(chain)
+        return delegate
+            .nextValueSeed(TrackedSeed(seed, valueChain, track))
+            .mapError { track.trigger(chain, it) }
+    }
 
-    override fun decodeBoolean(): Boolean =
-        try {
-            de.decodeBoolean()
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
+    override fun sizeHint(): Int? = delegate.sizeHint()
+}
 
-    override fun decodeByte(): Byte =
-        try {
-            de.decodeByte()
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    override fun decodeShort(): Short =
-        try {
-            de.decodeShort()
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    override fun decodeInt(): Int =
-        try {
-            de.decodeInt()
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    override fun decodeLong(): Long =
-        try {
-            de.decodeLong()
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    override fun decodeFloat(): Float =
-        try {
-            de.decodeFloat()
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    override fun decodeDouble(): Double =
-        try {
-            de.decodeDouble()
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    override fun decodeChar(): Char =
-        try {
-            de.decodeChar()
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    override fun decodeString(): String =
-        try {
-            de.decodeString()
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int =
-        try {
-            de.decodeEnum(enumDescriptor)
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    override fun decodeInline(descriptor: SerialDescriptor): Decoder =
-        try {
-            Deserializer(de.decodeInline(descriptor), Chain.NewtypeStruct(chain), track)
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T =
-        try {
-            deserializer.deserialize(this)
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder =
-        try {
-            val composite = de.beginStructure(descriptor)
-            TrackedCompositeDecoder(composite, descriptor, chain, track)
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-
-    public companion object {
-        public fun new(de: Decoder, track: Track): Deserializer = Deserializer(de, track)
-
-        internal fun withChain(de: Decoder, chain: Chain, track: Track): Deserializer =
-            Deserializer(de, chain, track)
+internal class PathEnumAccess(
+    private val delegate: EnumAccess,
+    private val chain: Chain,
+    private val track: Track,
+) : EnumAccess {
+    override fun <V> variantSeed(seed: DeserializeSeed<V>): SerdeResult<Pair<V, VariantAccess>> {
+        var capturedVariant: String? = null
+        val captureSeed = CaptureKeySeed(seed) { capturedVariant = it }
+        return delegate
+            .variantSeed(captureSeed)
+            .mapError { track.trigger(chain, it) }
+            .map { (v, access) ->
+                val variant = capturedVariant
+                val variantChain = if (variant != null) Chain.Enum(chain, variant) else chain
+                Pair(v, PathVariantAccess(access, variantChain, track))
+            }
     }
 }
 
-public class TrackedCompositeDecoder(
-    private val delegate: CompositeDecoder,
-    private val descriptor: SerialDescriptor,
+internal class PathVariantAccess(
+    private val delegate: VariantAccess,
     private val chain: Chain,
     private val track: Track,
-) : CompositeDecoder {
-    private var lastKeyString: String? = null
-    private var currentElementIndex = 0
+) : VariantAccess {
+    override fun unitVariant(): SerdeResult<Unit> =
+        delegate.unitVariant().mapError { track.trigger(chain, it) }
 
-    override val serializersModule: SerializersModule
-        get() = delegate.serializersModule
+    override fun <T> newtypeVariantSeed(seed: DeserializeSeed<T>): SerdeResult<T> =
+        delegate
+            .newtypeVariantSeed(TrackedSeed(seed, Chain.NewtypeVariant(chain), track))
+            .mapError { track.trigger(chain, it) }
 
-    override fun decodeSequentially(): Boolean = delegate.decodeSequentially()
+    override fun <V> tupleVariant(len: Int, visitor: Visitor<V>): SerdeResult<V> =
+        delegate
+            .tupleVariant(len, WrapVisitor(visitor, chain, track))
+            .mapError { track.trigger(chain, it) }
 
-    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = delegate.decodeCollectionSize(descriptor)
-
-    override fun endStructure(descriptor: SerialDescriptor) {
-        try {
-            delegate.endStructure(descriptor)
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
-    }
-
-    override fun decodeElementIndex(descriptor: SerialDescriptor): Int =
-        try {
-            val idx = delegate.decodeElementIndex(descriptor)
-            currentElementIndex = idx
-            idx
-        } catch (e: Throwable) {
-            val errChain = extractChainFromException(e) ?: chain
-            throw track.trigger(errChain, e)
-        }
-
-    private fun extractChainFromException(e: Throwable): Chain? {
-        val msg = e.message ?: return null
-        val matchResult =
-            Regex(
-                """(?:unknown key|unknown field|Encountered an unknown key)\s+['"`]([^'"`]+)['"`]""",
-                RegexOption.IGNORE_CASE,
-            ).find(msg)
-        if (matchResult != null) {
-            val field = matchResult.groupValues[1]
-            return Chain.Struct(chain, field)
-        }
-        return null
-    }
-
-    private fun childChain(index: Int): Chain =
-        when (descriptor.kind) {
-            StructureKind.CLASS, StructureKind.OBJECT -> {
-                if (index in 0 until descriptor.elementsCount) {
-                    Chain.Struct(chain, descriptor.getElementName(index))
-                } else {
-                    Chain.Seq(chain, index)
-                }
-            }
-            StructureKind.LIST -> Chain.Seq(chain, index)
-            StructureKind.MAP -> {
-                if (index % 2 == 0) {
-                    Chain.Seq(chain, index / 2)
-                } else {
-                    val key = lastKeyString
-                    if (key != null) {
-                        Chain.Map(chain, key)
-                    } else {
-                        Chain.NonStringKey(chain)
-                    }
-                }
-            }
-            is PolymorphicKind -> {
-                if (index in 0 until descriptor.elementsCount) {
-                    Chain.Enum(chain, descriptor.getElementName(index))
-                } else {
-                    Chain.Seq(chain, index)
-                }
-            }
-            else -> Chain.Seq(chain, index)
-        }
-
-    override fun decodeBooleanElement(descriptor: SerialDescriptor, index: Int): Boolean =
-        withElement(index) { delegate.decodeBooleanElement(descriptor, index) }
-
-    override fun decodeByteElement(descriptor: SerialDescriptor, index: Int): Byte =
-        withElement(index) { delegate.decodeByteElement(descriptor, index) }
-
-    override fun decodeShortElement(descriptor: SerialDescriptor, index: Int): Short =
-        withElement(index) { delegate.decodeShortElement(descriptor, index) }
-
-    override fun decodeIntElement(descriptor: SerialDescriptor, index: Int): Int =
-        withElement(index) { delegate.decodeIntElement(descriptor, index) }
-
-    override fun decodeLongElement(descriptor: SerialDescriptor, index: Int): Long =
-        withElement(index) { delegate.decodeLongElement(descriptor, index) }
-
-    override fun decodeFloatElement(descriptor: SerialDescriptor, index: Int): Float =
-        withElement(index) { delegate.decodeFloatElement(descriptor, index) }
-
-    override fun decodeDoubleElement(descriptor: SerialDescriptor, index: Int): Double =
-        withElement(index) { delegate.decodeDoubleElement(descriptor, index) }
-
-    override fun decodeCharElement(descriptor: SerialDescriptor, index: Int): Char =
-        withElement(index) { delegate.decodeCharElement(descriptor, index) }
-
-    override fun decodeStringElement(descriptor: SerialDescriptor, index: Int): String {
-        val s = withElement(index) { delegate.decodeStringElement(descriptor, index) }
-        if (descriptor.kind == StructureKind.MAP && index % 2 == 0) {
-            lastKeyString = s
-        }
-        return s
-    }
-
-    override fun decodeInlineElement(descriptor: SerialDescriptor, index: Int): Decoder {
-        val child = childChain(index)
-        return try {
-            Deserializer.withChain(delegate.decodeInlineElement(descriptor, index), child, track)
-        } catch (e: Throwable) {
-            throw track.trigger(child, e)
-        }
-    }
-
-    override fun <T> decodeSerializableElement(
-        descriptor: SerialDescriptor,
-        index: Int,
-        deserializer: DeserializationStrategy<T>,
-        previousValue: T?,
-    ): T {
-        val child = childChain(index)
-        return try {
-            val result =
-                delegate.decodeSerializableElement(
-                    descriptor,
-                    index,
-                    TrackingDeserializationStrategy(deserializer, child, track),
-                    previousValue,
-                )
-            if (descriptor.kind == StructureKind.MAP && index % 2 == 0) {
-                lastKeyString = result?.toString()
-            }
-            result
-        } catch (e: Throwable) {
-            throw track.trigger(child, e)
-        }
-    }
-
-    override fun <T : Any> decodeNullableSerializableElement(
-        descriptor: SerialDescriptor,
-        index: Int,
-        deserializer: DeserializationStrategy<T?>,
-        previousValue: T?,
-    ): T? {
-        val child = childChain(index)
-        return try {
-            val result =
-                delegate.decodeNullableSerializableElement(
-                    descriptor,
-                    index,
-                    TrackingDeserializationStrategy(deserializer, child, track),
-                    previousValue,
-                )
-            if (descriptor.kind == StructureKind.MAP && index % 2 == 0) {
-                lastKeyString = result?.toString()
-            }
-            result
-        } catch (e: Throwable) {
-            throw track.trigger(child, e)
-        }
-    }
-
-    private inline fun <R> withElement(index: Int, block: () -> R): R {
-        val child = childChain(index)
-        return try {
-            block()
-        } catch (e: Throwable) {
-            throw track.trigger(child, e)
-        }
-    }
+    override fun <V> structVariant(fields: List<String>, visitor: Visitor<V>): SerdeResult<V> =
+        delegate
+            .structVariant(fields, WrapVisitor(visitor, chain, track))
+            .mapError { track.trigger(chain, it) }
 }
 
-private class TrackingDeserializationStrategy<T>(
-    private val delegate: DeserializationStrategy<T>,
+internal class TrackedSeed<T>(
+    private val seed: DeserializeSeed<T>,
     private val chain: Chain,
     private val track: Track,
-) : DeserializationStrategy<T> {
-    override val descriptor: SerialDescriptor
-        get() = delegate.descriptor
+) : DeserializeSeed<T> {
+    override fun <D : Deserializer> deserialize(deserializer: D): SerdeResult<T> =
+        seed
+            .deserialize(Deserializer(deserializer, chain, track))
+            .mapError { track.trigger(chain, it) }
+}
 
-    override fun deserialize(decoder: Decoder): T {
-        val trackedDecoder = Deserializer.withChain(decoder, chain, track)
-        return try {
-            delegate.deserialize(trackedDecoder)
-        } catch (e: Throwable) {
-            throw track.trigger(chain, e)
-        }
+internal class CaptureKeySeed<T>(
+    private val delegate: DeserializeSeed<T>,
+    private val onKey: (String) -> Unit,
+) : DeserializeSeed<T> {
+    override fun <D : Deserializer> deserialize(deserializer: D): SerdeResult<T> =
+        delegate.deserialize(CaptureKeyDeserializer(deserializer, onKey))
+}
+
+internal class CaptureKeyDeserializer(
+    private val delegate: Deserializer,
+    private val onKey: (String) -> Unit,
+) : Deserializer {
+    override fun isHumanReadable(): Boolean = delegate.isHumanReadable()
+
+    override fun <V> deserializeAny(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeAny(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeBool(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeBool(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeI8(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeI8(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeI16(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeI16(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeI32(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeI32(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeI64(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeI64(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeI128(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeI128(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeU8(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeU8(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeU16(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeU16(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeU32(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeU32(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeU64(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeU64(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeU128(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeU128(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeF32(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeF32(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeF64(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeF64(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeChar(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeChar(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeStr(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeStr(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeString(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeString(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeBytes(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeBytes(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeByteBuf(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeByteBuf(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeOption(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeOption(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeUnit(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeUnit(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeUnitStruct(name: String, visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeUnitStruct(name, CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeNewtypeStruct(name: String, visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeNewtypeStruct(name, CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeSeq(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeSeq(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeTuple(len: Int, visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeTuple(len, CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeTupleStruct(name: String, len: Int, visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeTupleStruct(name, len, CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeMap(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeMap(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeStruct(name: String, fields: List<String>, visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeStruct(name, fields, CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeEnum(name: String, variants: List<String>, visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeEnum(name, variants, CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeIdentifier(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeIdentifier(CaptureKeyVisitor(visitor, onKey))
+
+    override fun <V> deserializeIgnoredAny(visitor: Visitor<V>): SerdeResult<V> =
+        delegate.deserializeIgnoredAny(CaptureKeyVisitor(visitor, onKey))
+}
+
+internal class CaptureKeyVisitor<V>(
+    private val delegate: Visitor<V>,
+    private val onKey: (String) -> Unit,
+) : Visitor<V> {
+    override fun expecting(): String = delegate.expecting()
+
+    override fun visitBool(v: Boolean): SerdeResult<V> {
+        onKey(if (v) "true" else "false")
+        return delegate.visitBool(v)
     }
+
+    override fun visitI8(v: Byte): SerdeResult<V> {
+        onKey(v.toString())
+        return delegate.visitI8(v)
+    }
+
+    override fun visitI16(v: Short): SerdeResult<V> {
+        onKey(v.toString())
+        return delegate.visitI16(v)
+    }
+
+    override fun visitI32(v: Int): SerdeResult<V> {
+        onKey(v.toString())
+        return delegate.visitI32(v)
+    }
+
+    override fun visitI64(v: Long): SerdeResult<V> {
+        onKey(v.toString())
+        return delegate.visitI64(v)
+    }
+
+    override fun visitI128(v: String): SerdeResult<V> {
+        onKey(v)
+        return delegate.visitI128(v)
+    }
+
+    override fun visitU8(v: UByte): SerdeResult<V> {
+        onKey(v.toString())
+        return delegate.visitU8(v)
+    }
+
+    override fun visitU16(v: UShort): SerdeResult<V> {
+        onKey(v.toString())
+        return delegate.visitU16(v)
+    }
+
+    override fun visitU32(v: UInt): SerdeResult<V> {
+        onKey(v.toString())
+        return delegate.visitU32(v)
+    }
+
+    override fun visitU64(v: ULong): SerdeResult<V> {
+        onKey(v.toString())
+        return delegate.visitU64(v)
+    }
+
+    override fun visitU128(v: String): SerdeResult<V> {
+        onKey(v)
+        return delegate.visitU128(v)
+    }
+
+    override fun visitStr(v: String): SerdeResult<V> {
+        onKey(v)
+        return delegate.visitStr(v)
+    }
+
+    override fun visitString(v: String): SerdeResult<V> {
+        onKey(v)
+        return delegate.visitString(v)
+    }
+
+    override fun visitF32(v: Float): SerdeResult<V> = delegate.visitF32(v)
+
+    override fun visitF64(v: Double): SerdeResult<V> = delegate.visitF64(v)
+
+    override fun visitChar(v: Char): SerdeResult<V> = delegate.visitChar(v)
+
+    override fun visitBytes(v: ByteArray): SerdeResult<V> = delegate.visitBytes(v)
+
+    override fun visitNone(): SerdeResult<V> = delegate.visitNone()
+
+    override fun <D : Deserializer> visitSome(deserializer: D): SerdeResult<V> = delegate.visitSome(deserializer)
+
+    override fun visitUnit(): SerdeResult<V> = delegate.visitUnit()
+
+    override fun <D : Deserializer> visitNewtypeStruct(deserializer: D): SerdeResult<V> = delegate.visitNewtypeStruct(deserializer)
+
+    override fun <A : SeqAccess> visitSeq(access: A): SerdeResult<V> = delegate.visitSeq(access)
+
+    override fun <A : MapAccess> visitMap(access: A): SerdeResult<V> = delegate.visitMap(access)
+
+    override fun <A : EnumAccess> visitEnum(access: A): SerdeResult<V> = delegate.visitEnum(access)
 }
